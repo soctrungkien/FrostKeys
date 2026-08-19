@@ -70,6 +70,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import org.woheller69.freeDroidWarn.FreeDroidWarn;
 
 // todo: with compose, app startup is slower and UI needs some "warmup" time to be snappy
 //  maybe baseline profiles help?
@@ -89,6 +90,7 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FreeDroidWarn.showWarningOnUpgrade(this, BuildConfig.VERSION_CODE);
         runCatching {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
             val lastUpdateTime = packageInfo.lastUpdateTime
