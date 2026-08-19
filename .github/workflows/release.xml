@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload Mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-release
+          path: app/build/outputs/mapping/release/
+          if-no-files-found: ignore
+
+      - name: Archive reports for failed job
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: '*/build/reports'
+
+
+  Upload-to-Release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Organize Artifacts
+        shell: bash
+        run: |
+          set -e
+
+          mkdir -p ./apks
+          mkdir -p ./mappings
+
+          # Copy APK
+          find ./artifacts/release-apk \
+            -type f \
+            -name "*.apk" \
+            -exec cp {} ./apks/ \;
+
+          # Zip mapping
+          if [ -d "./artifacts/mapping-release" ]; then
+            cd ./artifacts/mapping-release
+            zip -r "../../mappings/mapping-release.zip" .
+            cd ../..
+          fi
+
+          echo "APK files:"
+          find ./apks -type f -name "*.apk" -print
+
+          echo "Mapping files:"
+          find ./mappings -type f -name "*.zip" -print
+
+      - name: Upload To Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            ./apks/*.apk
+            ./mappings/*.zip
+          fail_on_unmatched_files: true
