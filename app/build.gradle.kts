@@ -206,5 +206,5 @@ dependencies {
     testImplementation("androidx.test:core:1.7.0")
 
     //KeepAndroidOpen
-    implementation('com.github.woheller69:FreeDroidWarn:V1.13')
+    implementation("com.github.woheller69:FreeDroidWarn:V1.13")
 }
