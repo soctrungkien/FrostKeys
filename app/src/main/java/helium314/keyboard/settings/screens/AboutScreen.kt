@@ -172,7 +172,7 @@ fun createAboutSettings(context: Context) = listOf(
                 intent.action = Intent.ACTION_VIEW
                 ctx.startActivity(intent)
             },
-            icon = R.drawable.ic_soctrungkien
+            icon = R.drawable.img_soctrungkien
         )
     },
     Setting(context, SettingsWithoutKey.GITHUB, R.string.about_github_link) {
